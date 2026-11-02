@@ -17,7 +17,6 @@ function App() {
     if (current) {
       const base64Image = current.getScreenshot();
       setImgSrc(base64Image);
-      console.log(base64Image);
     }
 
   }, [webcamRef]);
@@ -46,6 +45,7 @@ function App() {
             audio={false}
             height={720}
             width={1280}
+            style={{maxWidth: "100%", height: "auto"}}
             screenshotFormat={"image/png"}
             screenshotQuality={1}
             videoConstraints={videoConstraints}

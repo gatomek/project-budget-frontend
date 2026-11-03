@@ -2,6 +2,7 @@ import './App.css'
 import Webcam from 'react-webcam';
 import {useCallback, useRef, useState} from "react";
 import axios from "axios";
+import {v4 as uuidv4} from 'uuid';
 
 const videoConstraints = {
     width: 1280,
@@ -34,13 +35,14 @@ function App() {
         setStatus('uploading');
         setUploadProgress(0);
 
-        console.log(imgSrc);
+        const blob = await (await fetch(imgSrc)).blob();
+        const name = uuidv4() + ".png";
+        const formData = new FormData();
+        formData.append('file', blob, name);
+        console.log(`Uploading ${name}: ${blob.type} of size ${blob.size}`)
 
         try {
-            await axios.post("http://localhost:8080/receipt", imgSrc, {
-                headers: {
-                    'Content-Type': 'text/plain'
-                },
+            await axios.post("http://localhost:8080/receipt", formData, {
                 timeout: 60000,
                 timeoutErrorMessage: '! timeout !',
                 onUploadProgress: (progressEvent) => {

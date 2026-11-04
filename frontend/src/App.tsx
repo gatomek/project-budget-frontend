@@ -10,6 +10,12 @@ const videoConstraints = {
     facingMode: "user"
 };
 
+const backendUrl =  import.meta.env.VITE_BACKEND_URL;
+
+if (!backendUrl) {
+    throw new Error('Missing required environment variable: VITE_BACKEND_URL');
+}
+
 type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
 
 function App() {
@@ -42,7 +48,7 @@ function App() {
         console.log(`Uploading ${name}: ${blob.type} of size ${blob.size}`)
 
         try {
-            await axios.post("http://localhost:8080/receipt", formData, {
+            await axios.post(backendUrl, formData, {
                 timeout: 60000,
                 timeoutErrorMessage: '! timeout !',
                 onUploadProgress: (progressEvent) => {

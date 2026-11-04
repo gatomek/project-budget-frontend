@@ -1,0 +1,27 @@
+---
+- name: "Tear down service {{ app_name }} on castle"
+  hosts: castle
+  remote_user: "{{ remote_admin }}"
+  become: true
+  become_method: sudo
+  gather_facts: no
+
+  vars_files:
+    - vars/prod-app.yml
+
+  tasks:
+    - name: Uninstall nginx
+      apt:
+        name: nginx
+        state: absent
+        update_cache: yes
+
+    - name: "Delete user {{ app_name }}"
+      user:
+        name: "{{ app_name }}"
+        state: absent
+
+    - name: "Delete folder /opt/{{ app_name }}/frontend"
+      file:
+        path: "/opt/{{ app_name }}/frontend"
+        state: absent

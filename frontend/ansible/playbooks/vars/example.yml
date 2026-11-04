@@ -1,0 +1,8 @@
+user:
+app_name:
+remote_admin:
+user_password:
+ansible_become_pass:
+privatekey_path:
+certificate_path:
+server_dns:

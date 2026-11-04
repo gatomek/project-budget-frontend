@@ -1,0 +1,83 @@
+---
+- name: "Set up service {{ app_name }} on castle"
+  hosts: castle
+  remote_user: "{{ remote_admin }}"
+  become: true
+  become_method: sudo
+  gather_facts: no
+
+  vars_files:
+    - vars/prod-app.yml
+
+  tasks:
+    - name: Install nginx
+      apt:
+        name: nginx
+        state: latest
+        update_cache: yes
+
+    - name: "Creating user {{ app_name }}"
+      user:
+        name: "{{app_name}}"
+        shell: /bin/bash
+        create_home: no
+        password: "{{user_password | password_hash('sha512') }}"
+        state: present
+
+    - name: "Add user to group {{ app_name }}"
+      user:
+        name: "{{ user }}"
+        groups: "{{ app_name }}"
+        append: yes
+        state: present
+
+    - name: Remove default nginx configuration
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+
+    - name: Add nginx configuration
+      template:
+        src: data/budget.conf
+        dest: /etc/nginx/sites-available/budget.conf
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Enable website configuration
+      file:
+        src: /etc/nginx/sites-available/budget.conf
+        dest: /etc/nginx/sites-enabled/budget.conf
+        state: link
+      notify: Reload nginx
+
+    - name: "Adjust folder /opt/{{ app_name }}"
+      file:
+        path: "/opt/{{ app_name }}"
+        state: directory
+        owner: "{{ app_name }}"
+        group: "{{ app_name }}"
+        mode: '0750'
+
+    - name: "Create folder /opt/{{ app_name }}/frontend"
+      file:
+        path: "/opt/{{ app_name }}/frontend"
+        state: directory
+        owner: "{{ app_name }}"
+        group: "{{ app_name }}"
+        mode: '0750'
+
+    - name: "Copy dist to /opt/{{ app_name }}/frontend/ folder"
+      copy:
+        src: ../../dist/
+        dest: "/opt/{{ app_name }}/frontend/"
+        owner: "{{ app_name }}"
+        group: "{{ app_name }}"
+        mode: '0644'
+        directory_mode: '0755'
+
+    - name: Reload nginx
+      systemd:
+        name: nginx
+        state: reloaded
+        enabled: yes

@@ -14,7 +14,6 @@
       apt:
         name: nginx
         state: absent
-        update_cache: yes
 
     - name: "Delete user {{ app_name }}"
       user:

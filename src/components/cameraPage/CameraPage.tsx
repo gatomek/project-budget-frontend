@@ -1,11 +1,14 @@
 import Webcam from 'react-webcam';
-import {useCallback, useRef, useState} from 'react';
+import {useCallback, useContext, useRef, useState} from 'react';
 import axios from 'axios';
 import {v4 as uuidv4} from 'uuid';
 import {Display} from '../display/Display.tsx';
 import {DisplayRow} from '../controlItemRow/DisplayRow.tsx';
 import {Button} from '../button/Button.tsx';
 import {ControlPanel} from '../controlPanel/ControlPanel.tsx';
+import {ViewContext} from '../context/ViewContext.tsx';
+import styles from './CameraPage.module.css';
+
 
 interface Resolution {
     width?: number;
@@ -36,13 +39,14 @@ if (!backendUrl) {
 
 type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
 
-export function Camera() {
+export function CameraPage() {
 
     const webcamRef = useRef<Webcam>(null);
     const [blob, setBlob] = useState<Blob | null>(null);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [status, setStatus] = useState<UploadStatus>('idle');
     const [resolution, setResolution] = useState<Resolution>({});
+    const {setView} = useContext(ViewContext);
 
     const onUserMedia = (stream: MediaStream) => {
         const videoTrack = stream.getVideoTracks()[0];
@@ -98,7 +102,7 @@ export function Camera() {
     };
 
     return (
-        <section id="center">
+        <section className={styles.root}>
             <div
                 style={{
                     position: 'relative',
@@ -121,24 +125,27 @@ export function Camera() {
                 <DisplayRow>
                     <Display>
                         {resolution.width && resolution.width ? `${resolution.width} x ${resolution.height}` : ''}
-                        <br/>
+                        <br />
                         {blob?.size}
                     </Display>
                     &nbsp;
-                    <Display>{
+                    <Display>
                         {
-                            'success': 'Success',
-                            'error': 'Error',
-                            'uploading': `${uploadProgress}%`,
-                            'idle': ''
-                        }[status]
-                    }
+                            {
+                                success: 'Success',
+                                error: 'Error',
+                                uploading: `${uploadProgress}%`,
+                                idle: ''
+                            }[status]
+                        }
                     </Display>
                 </DisplayRow>
                 <DisplayRow>
+                    <Button onClick={() => setView('devices')}>Devices</Button>
+                    &nbsp;
                     <Button onClick={capture}>
                         Capture
-                        <br/>
+                        <br />
                         {jpegFormat.ext.toUpperCase()}
                     </Button>
                     &nbsp;
@@ -148,5 +155,5 @@ export function Camera() {
                 </DisplayRow>
             </ControlPanel>
         </section>
-    )
+    );
 }

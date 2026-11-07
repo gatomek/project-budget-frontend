@@ -8,6 +8,11 @@ import {DisplayRow} from './components/controlItemRow/DisplayRow.tsx';
 import {Button} from './components/button/Button.tsx';
 import {ControlPanel} from './components/controlPanel/ControlPanel.tsx';
 
+interface Resolution {
+    width?: number;
+    height?: number;
+}
+
 const videoConstraints = {
     facingMode: 'environment',
     width: {ideal: 3840, max: 4096},
@@ -37,33 +42,29 @@ function App() {
     const [blob, setBlob] = useState<Blob | null>(null);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [status, setStatus] = useState<UploadStatus>('idle');
-    const [resolution, setResolution] = useState({width: 0, height: 0});
+    const [resolution, setResolution] = useState<Resolution>({});
+
+    const onUserMedia = (stream: MediaStream) => {
+        const videoTrack = stream.getVideoTracks()[0];
+        const settings = videoTrack?.getSettings();
+        if (settings?.width && settings.height) {
+            setResolution({
+                width: settings.width,
+                height: settings.height
+            });
+        }
+    };
 
     const capture = useCallback(async () => {
         const current = webcamRef.current;
         if (current) {
-            const videoTrack = current.stream?.getVideoTracks()[0];
-            const settings = videoTrack?.getSettings();
-            if (settings?.width && settings.height) {
-                setResolution({
-                    width: settings.width,
-                    height: settings.height
-                });
-            }
-
+            const {width, height} = resolution;
             const base64Image =
-                settings?.width && settings.height
-                    ? current.getScreenshot({width: settings.width, height: settings.height})
-                    : current.getScreenshot();
+                width && height ? current.getScreenshot({width: width, height: height}) : current.getScreenshot();
 
-            if (base64Image) {
-                const blob = await (await fetch(base64Image)).blob();
-                setBlob(blob);
-            } else {
-                setBlob(null);
-            }
+            setBlob(base64Image ? await (await fetch(base64Image)).blob() : null);
         }
-    }, [webcamRef]);
+    }, [webcamRef, resolution]);
 
     const upload = async () => {
         if (!blob) {
@@ -111,13 +112,15 @@ function App() {
                     screenshotFormat={jpegFormat.mime}
                     screenshotQuality={0.95}
                     videoConstraints={videoConstraints}
+                    onUserMedia={onUserMedia}
+                    forceScreenshotSourceSize={true}
                     style={{width: '100%', maxWidth: '600px', height: 'auto'}}
                 />
             </div>
             <ControlPanel>
                 <DisplayRow>
                     <Display>
-                        {resolution.width} x {resolution.height}
+                        {resolution.width && resolution.width ? `${resolution.width} x ${resolution.height}` : ''}
                         <br />
                         {blob?.size}
                     </Display>

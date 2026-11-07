@@ -7,9 +7,10 @@ export interface DisplayProps {
 
 export function Display({children}: Readonly<DisplayProps>) {
     return (
-        <div className={styles.root}>{
-            children
-        }
+        <div className={styles.root}>
+            <div>{
+                children
+            }</div>
         </div>
     )
 }

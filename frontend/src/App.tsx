@@ -59,6 +59,8 @@ function App() {
             if (base64Image) {
                 const blob = await (await fetch(base64Image)).blob();
                 setBlob(blob);
+            } else {
+                setBlob(null);
             }
         }
 

@@ -44,17 +44,17 @@ function App() {
         if (current) {
             const videoTrack = current.stream?.getVideoTracks()[0];
             const settings = videoTrack?.getSettings();
-            if (settings && settings.width && settings.height) {
+            if (settings?.width && settings.height) {
                 setResolution({
-                    width: settings?.width ?? 1000,
-                    height: settings?.height ?? 1000
+                    width: settings.width,
+                    height: settings.height
                 });
             }
 
-            const base64Image = current.getScreenshot({
-                width: settings?.width ?? 0,
-                height: settings?.height ?? 0
-            });
+            const base64Image =
+                settings?.width && settings.height
+                    ? current.getScreenshot({width: settings.width, height: settings.height})
+                    : current.getScreenshot();
 
             if (base64Image) {
                 const blob = await (await fetch(base64Image)).blob();

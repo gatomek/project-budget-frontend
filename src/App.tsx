@@ -19,12 +19,12 @@ const videoConstraints = {
     height: {ideal: 2160, max: 2160}
 };
 
-interface fileFormat {
+interface FileFormat {
     mime: 'image/webp' | 'image/png' | 'image/jpeg' | undefined;
     ext: string;
 }
 
-const jpegFormat: fileFormat = {
+const jpegFormat: FileFormat = {
     ext: 'jpg',
     mime: 'image/jpeg'
 };

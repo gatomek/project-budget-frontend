@@ -66,7 +66,7 @@ function App() {
     }, [webcamRef]);
 
     const upload = async () => {
-        if (blob == null) {
+        if (!blob) {
             return;
         }
 
@@ -76,7 +76,6 @@ function App() {
         const name = uuidv4() + '.' + jpegFormat.ext;
         const formData = new FormData();
         formData.append('file', blob, name);
-        console.log(`Uploading ${name}: ${blob.type} of size ${blob.size}`);
 
         try {
             await axios.post(backendUrl, formData, {
@@ -110,7 +109,7 @@ function App() {
                     ref={webcamRef}
                     audio={false}
                     screenshotFormat={jpegFormat.mime}
-                    screenshotQuality={1}
+                    screenshotQuality={0.95}
                     videoConstraints={videoConstraints}
                     style={{width: '100%', maxWidth: '600px', height: 'auto'}}
                 />
@@ -136,7 +135,7 @@ function App() {
                         {jpegFormat.ext.toUpperCase()}
                     </Button>
                     &nbsp;
-                    <Button onClick={upload} disabled={!blob}>
+                    <Button onClick={upload} disabled={!blob || status === 'uploading'}>
                         Upload
                     </Button>
                 </DisplayRow>

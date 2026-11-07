@@ -8,18 +8,23 @@ import {DisplayRow} from './components/controlItemRow/DisplayRow.tsx';
 import {Button} from './components/button/Button.tsx';
 import {ControlPanel} from './components/controlPanel/ControlPanel.tsx';
 
+interface Resolution {
+    width?: number;
+    height?: number;
+}
+
 const videoConstraints = {
     facingMode: 'environment',
     width: {ideal: 3840, max: 4096},
     height: {ideal: 2160, max: 2160}
 };
 
-interface fileFormat {
+interface FileFormat {
     mime: 'image/webp' | 'image/png' | 'image/jpeg' | undefined;
     ext: string;
 }
 
-const jpegFormat: fileFormat = {
+const jpegFormat: FileFormat = {
     ext: 'jpg',
     mime: 'image/jpeg'
 };
@@ -37,36 +42,32 @@ function App() {
     const [blob, setBlob] = useState<Blob | null>(null);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [status, setStatus] = useState<UploadStatus>('idle');
-    const [resolution, setResolution] = useState({width: 0, height: 0});
+    const [resolution, setResolution] = useState<Resolution>({});
+
+    const onUserMedia = (stream: MediaStream) => {
+        const videoTrack = stream.getVideoTracks()[0];
+        const settings = videoTrack?.getSettings();
+        if (settings?.width && settings.height) {
+            setResolution({
+                width: settings.width,
+                height: settings.height
+            });
+        }
+    };
 
     const capture = useCallback(async () => {
         const current = webcamRef.current;
         if (current) {
-            const videoTrack = current.stream?.getVideoTracks()[0];
-            const settings = videoTrack?.getSettings();
-            if (settings && settings.width && settings.height) {
-                setResolution({
-                    width: settings?.width ?? 1000,
-                    height: settings?.height ?? 1000
-                });
-            }
+            const {width, height} = resolution;
+            const base64Image =
+                width && height ? current.getScreenshot({width: width, height: height}) : current.getScreenshot();
 
-            const base64Image = current.getScreenshot({
-                width: settings?.width ?? 0,
-                height: settings?.height ?? 0
-            });
-
-            if (base64Image) {
-                const blob = await (await fetch(base64Image)).blob();
-                setBlob(blob);
-            } else {
-                setBlob(null);
-            }
+            setBlob(base64Image ? await (await fetch(base64Image)).blob() : null);
         }
-    }, [webcamRef]);
+    }, [webcamRef, resolution]);
 
     const upload = async () => {
-        if (blob == null) {
+        if (!blob) {
             return;
         }
 
@@ -76,7 +77,6 @@ function App() {
         const name = uuidv4() + '.' + jpegFormat.ext;
         const formData = new FormData();
         formData.append('file', blob, name);
-        console.log(`Uploading ${name}: ${blob.type} of size ${blob.size}`);
 
         try {
             await axios.post(backendUrl, formData, {
@@ -110,15 +110,17 @@ function App() {
                     ref={webcamRef}
                     audio={false}
                     screenshotFormat={jpegFormat.mime}
-                    screenshotQuality={1}
+                    screenshotQuality={0.95}
                     videoConstraints={videoConstraints}
+                    onUserMedia={onUserMedia}
+                    forceScreenshotSourceSize={true}
                     style={{width: '100%', maxWidth: '600px', height: 'auto'}}
                 />
             </div>
             <ControlPanel>
                 <DisplayRow>
                     <Display>
-                        {resolution.width} x {resolution.height}
+                        {resolution.width && resolution.width ? `${resolution.width} x ${resolution.height}` : ''}
                         <br />
                         {blob?.size}
                     </Display>
@@ -136,7 +138,7 @@ function App() {
                         {jpegFormat.ext.toUpperCase()}
                     </Button>
                     &nbsp;
-                    <Button onClick={upload} disabled={!blob}>
+                    <Button onClick={upload} disabled={!blob || status === 'uploading'}>
                         Upload
                     </Button>
                 </DisplayRow>

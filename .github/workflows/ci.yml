@@ -13,5 +13,7 @@ jobs:
               run: npm ci
             - name: Check format
               run: npm run format:check
+            - name: Check code with linter
+              run: npm run lint
             - name: Build solution
               run: npm run build-prod

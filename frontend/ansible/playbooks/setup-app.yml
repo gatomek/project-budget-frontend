@@ -67,7 +67,7 @@
         group: "{{ app_name }}"
         mode: '0750'
 
-    - name: "Copy dist to /opt/{{ app_name }}/frontend/ folder"
+    - name: "Copy dist to /opt/{{ app_name }}/frontend folder"
       copy:
         src: ../../dist/
         dest: "/opt/{{ app_name }}/frontend/"

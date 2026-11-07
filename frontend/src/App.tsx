@@ -3,14 +3,28 @@ import Webcam from 'react-webcam';
 import {useCallback, useRef, useState} from "react";
 import axios from "axios";
 import {v4 as uuidv4} from 'uuid';
+import {Display} from "./components/display/Display.tsx";
+import {DisplayRow} from "./components/controlItemRow/DisplayRow.tsx";
+import {Button} from "./components/button/Button.tsx";
+import {ControlPanel} from "./components/controlPanel/ControlPanel.tsx";
 
 const videoConstraints = {
-    width: 1280,
-    height: 720,
-    facingMode: "user"
+    facingMode: "environment",
+    width: {ideal: 3840, max: 4096},
+    height: {ideal: 2160, max: 2160}
 };
 
-const backendUrl =  import.meta.env.VITE_BACKEND_URL;
+interface fileFormat {
+    mime: "image/webp" | "image/png" | "image/jpeg" | undefined;
+    ext: string;
+}
+
+const jpegFormat: fileFormat = {
+    ext: "jpg",
+    mime: "image/jpeg"
+};
+
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 if (!backendUrl) {
     throw new Error('Missing required environment variable: VITE_BACKEND_URL');
@@ -20,29 +34,47 @@ type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
 
 function App() {
     const webcamRef = useRef<Webcam>(null);
-    const [imgSrc, setImgSrc] = useState<string | null>(null);
+    const [blob, setBlob] = useState<Blob | null>(null);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [status, setStatus] = useState<UploadStatus>('idle');
+    const [resolution, setResolution] = useState({width: 0, height: 0});
 
-    const capture = useCallback(() => {
+    const capture = useCallback(async () => {
         const current = webcamRef.current;
         if (current) {
-            const base64Image = current.getScreenshot();
-            setImgSrc(base64Image);
+            const videoTrack = current.stream?.getVideoTracks()[0];
+            const settings = videoTrack?.getSettings();
+            if (settings && settings.width && settings.height) {
+                setResolution({
+                    width: settings?.width ?? 1000,
+                    height: settings?.height ?? 1000,
+                })
+            }
+
+            const base64Image = current.getScreenshot({
+                width: settings?.width ?? 0,
+                height: settings?.height ?? 0,
+            });
+
+            if (base64Image) {
+                const blob = await (await fetch(base64Image)).blob();
+                setBlob(blob);
+            } else {
+                setBlob(null);
+            }
         }
 
     }, [webcamRef]);
 
     const upload = async () => {
-        if (imgSrc == null) {
+        if (blob == null) {
             return;
         }
 
         setStatus('uploading');
         setUploadProgress(0);
 
-        const blob = await (await fetch(imgSrc)).blob();
-        const name = uuidv4() + ".png";
+        const name = uuidv4() + "." + jpegFormat.ext;
         const formData = new FormData();
         formData.append('file', blob, name);
         console.log(`Uploading ${name}: ${blob.type} of size ${blob.size}`)
@@ -64,68 +96,48 @@ function App() {
             setStatus('error')
             setUploadProgress(0);
         }
-    }
-
-
-    const download = useCallback(() => {
-        if (imgSrc == null) {
-            return;
-        }
-
-        const link = document.createElement('a');
-        link.href = imgSrc;
-        link.download = 'webcam-picture.png';
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-    }, [imgSrc]);
-
-    const remove = useCallback(() => {
-        setImgSrc(null);
-    }, []);
+    };
 
     return (
         <section id="center">
-            <Webcam
-                ref={webcamRef}
-                audio={false}
-                height={720}
-                width={1280}
-                style={{maxWidth: "100%", height: "auto"}}
-                screenshotFormat={"image/png"}
-                screenshotQuality={1}
-                videoConstraints={videoConstraints}
-            />
-            <div>
-                <button onClick={capture}>Capture Photo</button>
-                &nbsp;
+            <div style={{
+                position: 'relative',
+                maxWidth: '600px',
+                margin: '0 auto',
+            }}>
+                <Webcam
+                    ref={webcamRef}
+                    audio={false}
+                    screenshotFormat={jpegFormat.mime}
+                    screenshotQuality={1}
+                    videoConstraints={videoConstraints}
+                    style={{width: "100%", maxWidth: "600px", height: "auto"}}
+                />
             </div>
-            <div style={{width: "100%", height: "150px"}}>
-                {imgSrc &&
-                    <>
-                        <div>
-                            <img src={imgSrc} alt="img" height={"150px"}
-                                 style={{border: "solid 1px gray", height: "150px"}}/>
-                        </div>
-                        <div>
-                            <button onClick={() => remove()}>Remove</button>
-                            &nbsp;
-                            <button onClick={() => download()}>Download</button>
-                            &nbsp;
-                            <button onClick={upload}>Upload</button>
-                        </div>
-                    </>
-                }
-                {status === 'success' &&
-                    <div>Success</div>
-                }
-                {status === 'error' &&
-                    <div>Error</div>
-                }
-                {status === 'uploading' &&
-                    <div>Progress: {uploadProgress}%</div>
-                }
-            </div>
+            <ControlPanel>
+                <DisplayRow>
+                    <Display>
+                        {resolution.width} x {resolution.height}
+                        <br/>
+                        {blob?.size}
+                    </Display>
+                    &nbsp;
+                    <Display>
+                        {status === 'success' && <div>Success</div>}
+                        {status === 'error' && <div>Error</div>}
+                        {status === 'uploading' && <div>{uploadProgress}%</div>}
+                    </Display>
+                </DisplayRow>
+                <DisplayRow>
+                    <Button onClick={capture}>
+                        Capture<br/>{jpegFormat.ext.toUpperCase()}
+                    </Button>
+                    &nbsp;
+                    <Button onClick={upload} disabled={!blob}>
+                        Upload
+                    </Button>
+                </DisplayRow>
+            </ControlPanel>
         </section>
     )
 }

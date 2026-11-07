@@ -1,4 +1,4 @@
-import type {ReactNode} from "react";
+import type {ReactNode} from 'react';
 import styles from './ControlPanel.module.css';
 
 export interface ControlPanelProps {
@@ -6,10 +6,5 @@ export interface ControlPanelProps {
 }
 
 export function ControlPanel({children}: Readonly<ControlPanelProps>) {
-    return (
-        <div className={styles.root}>{
-            children
-        }
-        </div>
-    )
+    return <div className={styles.root}>{children}</div>;
 }

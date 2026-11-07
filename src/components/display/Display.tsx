@@ -1,4 +1,4 @@
-import type {ReactNode} from "react";
+import type {ReactNode} from 'react';
 import styles from './Display.module.css';
 
 export interface DisplayProps {
@@ -8,9 +8,7 @@ export interface DisplayProps {
 export function Display({children}: Readonly<DisplayProps>) {
     return (
         <div className={styles.root}>
-            <div>{
-                children
-            }</div>
+            <div>{children}</div>
         </div>
-    )
+    );
 }

@@ -1,13 +1,13 @@
 services:
-  setup-app:
-    container_name: ansible_setup_app
-    build:
-      context: .
-      dockerfile: ansible.Dockerfile
-    command: ansible-playbook -i inventory.ini playbooks/setup-app.yml
-  teardown-app:
-    container_name: ansible_teardown_app
-    build:
-      context: .
-      dockerfile: ansible.Dockerfile
-    command: ansible-playbook -i inventory.ini playbooks/teardown-app.yml
+    setup-app:
+        container_name: ansible_setup_app
+        build:
+            context: .
+            dockerfile: ansible.Dockerfile
+        command: ansible-playbook -i inventory.ini playbooks/setup-app.yml
+    teardown-app:
+        container_name: ansible_teardown_app
+        build:
+            context: .
+            dockerfile: ansible.Dockerfile
+        command: ansible-playbook -i inventory.ini playbooks/teardown-app.yml

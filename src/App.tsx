@@ -1,27 +1,27 @@
-import './App.css'
+import './App.css';
 import Webcam from 'react-webcam';
-import {useCallback, useRef, useState} from "react";
-import axios from "axios";
+import {useCallback, useRef, useState} from 'react';
+import axios from 'axios';
 import {v4 as uuidv4} from 'uuid';
-import {Display} from "./components/display/Display.tsx";
-import {DisplayRow} from "./components/controlItemRow/DisplayRow.tsx";
-import {Button} from "./components/button/Button.tsx";
-import {ControlPanel} from "./components/controlPanel/ControlPanel.tsx";
+import {Display} from './components/display/Display.tsx';
+import {DisplayRow} from './components/controlItemRow/DisplayRow.tsx';
+import {Button} from './components/button/Button.tsx';
+import {ControlPanel} from './components/controlPanel/ControlPanel.tsx';
 
 const videoConstraints = {
-    facingMode: "environment",
+    facingMode: 'environment',
     width: {ideal: 3840, max: 4096},
     height: {ideal: 2160, max: 2160}
 };
 
 interface fileFormat {
-    mime: "image/webp" | "image/png" | "image/jpeg" | undefined;
+    mime: 'image/webp' | 'image/png' | 'image/jpeg' | undefined;
     ext: string;
 }
 
 const jpegFormat: fileFormat = {
-    ext: "jpg",
-    mime: "image/jpeg"
+    ext: 'jpg',
+    mime: 'image/jpeg'
 };
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
@@ -47,13 +47,13 @@ function App() {
             if (settings && settings.width && settings.height) {
                 setResolution({
                     width: settings?.width ?? 1000,
-                    height: settings?.height ?? 1000,
-                })
+                    height: settings?.height ?? 1000
+                });
             }
 
             const base64Image = current.getScreenshot({
                 width: settings?.width ?? 0,
-                height: settings?.height ?? 0,
+                height: settings?.height ?? 0
             });
 
             if (base64Image) {
@@ -63,7 +63,6 @@ function App() {
                 setBlob(null);
             }
         }
-
     }, [webcamRef]);
 
     const upload = async () => {
@@ -74,51 +73,53 @@ function App() {
         setStatus('uploading');
         setUploadProgress(0);
 
-        const name = uuidv4() + "." + jpegFormat.ext;
+        const name = uuidv4() + '.' + jpegFormat.ext;
         const formData = new FormData();
         formData.append('file', blob, name);
-        console.log(`Uploading ${name}: ${blob.type} of size ${blob.size}`)
+        console.log(`Uploading ${name}: ${blob.type} of size ${blob.size}`);
 
         try {
             await axios.post(backendUrl, formData, {
                 timeout: 60000,
                 timeoutErrorMessage: '! timeout !',
                 onUploadProgress: (progressEvent) => {
-                    const progress = progressEvent.total ?
-                        Math.round((progressEvent.loaded * 100) / progressEvent.total)
+                    const progress = progressEvent.total
+                        ? Math.round((progressEvent.loaded * 100) / progressEvent.total)
                         : 0;
                     setUploadProgress(progress);
                 }
-            })
-            setStatus('success')
+            });
+            setStatus('success');
             setUploadProgress(100);
         } catch {
-            setStatus('error')
+            setStatus('error');
             setUploadProgress(0);
         }
     };
 
     return (
         <section id="center">
-            <div style={{
-                position: 'relative',
-                maxWidth: '600px',
-                margin: '0 auto',
-            }}>
+            <div
+                style={{
+                    position: 'relative',
+                    maxWidth: '600px',
+                    margin: '0 auto'
+                }}
+            >
                 <Webcam
                     ref={webcamRef}
                     audio={false}
                     screenshotFormat={jpegFormat.mime}
                     screenshotQuality={1}
                     videoConstraints={videoConstraints}
-                    style={{width: "100%", maxWidth: "600px", height: "auto"}}
+                    style={{width: '100%', maxWidth: '600px', height: 'auto'}}
                 />
             </div>
             <ControlPanel>
                 <DisplayRow>
                     <Display>
                         {resolution.width} x {resolution.height}
-                        <br/>
+                        <br />
                         {blob?.size}
                     </Display>
                     &nbsp;
@@ -130,7 +131,9 @@ function App() {
                 </DisplayRow>
                 <DisplayRow>
                     <Button onClick={capture}>
-                        Capture<br/>{jpegFormat.ext.toUpperCase()}
+                        Capture
+                        <br />
+                        {jpegFormat.ext.toUpperCase()}
                     </Button>
                     &nbsp;
                     <Button onClick={upload} disabled={!blob}>
@@ -139,7 +142,7 @@ function App() {
                 </DisplayRow>
             </ControlPanel>
         </section>
-    )
+    );
 }
 
 export default App;

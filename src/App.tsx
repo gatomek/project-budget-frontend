@@ -1,149 +1,25 @@
 import './App.css';
-import Webcam from 'react-webcam';
-import {useCallback, useRef, useState} from 'react';
-import axios from 'axios';
-import {v4 as uuidv4} from 'uuid';
-import {Display} from './components/display/Display.tsx';
-import {DisplayRow} from './components/controlItemRow/DisplayRow.tsx';
-import {Button} from './components/button/Button.tsx';
-import {ControlPanel} from './components/controlPanel/ControlPanel.tsx';
-
-interface Resolution {
-    width?: number;
-    height?: number;
-}
-
-const videoConstraints = {
-    facingMode: 'environment',
-    width: {ideal: 3840, max: 4096},
-    height: {ideal: 2160, max: 2160}
-};
-
-interface FileFormat {
-    mime: 'image/webp' | 'image/png' | 'image/jpeg' | undefined;
-    ext: string;
-}
-
-const jpegFormat: FileFormat = {
-    ext: 'jpg',
-    mime: 'image/jpeg'
-};
-
-const backendUrl = import.meta.env.VITE_BACKEND_URL;
-
-if (!backendUrl) {
-    throw new Error('Missing required environment variable: VITE_BACKEND_URL');
-}
-
-type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
+import {CameraPage} from './components/cameraPage/CameraPage.tsx';
+import {useState} from 'react';
+import {type View, ViewContext} from './components/context/ViewContext.tsx';
+import {DevicesPage} from './components/devicesPage/DevicesPage.tsx';
+import {DeviceContext, type DeviceParam} from './components/context/DeviceContext.tsx';
 
 function App() {
-    const webcamRef = useRef<Webcam>(null);
-    const [blob, setBlob] = useState<Blob | null>(null);
-    const [uploadProgress, setUploadProgress] = useState(0);
-    const [status, setStatus] = useState<UploadStatus>('idle');
-    const [resolution, setResolution] = useState<Resolution>({});
-
-    const onUserMedia = (stream: MediaStream) => {
-        const videoTrack = stream.getVideoTracks()[0];
-        const settings = videoTrack?.getSettings();
-        if (settings?.width && settings.height) {
-            setResolution({
-                width: settings.width,
-                height: settings.height
-            });
-        }
-    };
-
-    const capture = useCallback(async () => {
-        const current = webcamRef.current;
-        if (current) {
-            const {width, height} = resolution;
-            const base64Image =
-                width && height ? current.getScreenshot({width: width, height: height}) : current.getScreenshot();
-
-            setBlob(base64Image ? await (await fetch(base64Image)).blob() : null);
-        }
-    }, [webcamRef, resolution]);
-
-    const upload = async () => {
-        if (!blob) {
-            return;
-        }
-
-        setStatus('uploading');
-        setUploadProgress(0);
-
-        const name = uuidv4() + '.' + jpegFormat.ext;
-        const formData = new FormData();
-        formData.append('file', blob, name);
-
-        try {
-            await axios.post(backendUrl, formData, {
-                timeout: 60000,
-                timeoutErrorMessage: '! timeout !',
-                onUploadProgress: (progressEvent) => {
-                    const progress = progressEvent.total
-                        ? Math.round((progressEvent.loaded * 100) / progressEvent.total)
-                        : 0;
-                    setUploadProgress(progress);
-                }
-            });
-            setStatus('success');
-            setUploadProgress(100);
-        } catch {
-            setStatus('error');
-            setUploadProgress(0);
-        }
-    };
+    const [view, setView] = useState<View>('camera');
+    const [deviceParams, setDeviceParams] = useState<DeviceParam>();
 
     return (
-        <section id="center">
-            <div
-                style={{
-                    position: 'relative',
-                    maxWidth: '600px',
-                    margin: '0 auto'
-                }}
-            >
-                <Webcam
-                    ref={webcamRef}
-                    audio={false}
-                    screenshotFormat={jpegFormat.mime}
-                    screenshotQuality={0.95}
-                    videoConstraints={videoConstraints}
-                    onUserMedia={onUserMedia}
-                    forceScreenshotSourceSize={true}
-                    style={{width: '100%', maxWidth: '600px', height: 'auto'}}
-                />
-            </div>
-            <ControlPanel>
-                <DisplayRow>
-                    <Display>
-                        {resolution.width && resolution.width ? `${resolution.width} x ${resolution.height}` : ''}
-                        <br />
-                        {blob?.size}
-                    </Display>
-                    &nbsp;
-                    <Display>
-                        {status === 'success' && <div>Success</div>}
-                        {status === 'error' && <div>Error</div>}
-                        {status === 'uploading' && <div>{uploadProgress}%</div>}
-                    </Display>
-                </DisplayRow>
-                <DisplayRow>
-                    <Button onClick={capture}>
-                        Capture
-                        <br />
-                        {jpegFormat.ext.toUpperCase()}
-                    </Button>
-                    &nbsp;
-                    <Button onClick={upload} disabled={!blob || status === 'uploading'}>
-                        Upload
-                    </Button>
-                </DisplayRow>
-            </ControlPanel>
-        </section>
+        <ViewContext value={{view, setView}}>
+            <DeviceContext value={{params: deviceParams, setDeviceParams: setDeviceParams}}>
+                {
+                    {
+                        camera: <CameraPage />,
+                        devices: <DevicesPage />
+                    }[view]
+                }
+            </DeviceContext>
+        </ViewContext>
     );
 }
 

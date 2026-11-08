@@ -5,9 +5,11 @@ import {Button} from '../button/Button.tsx';
 import {useContext} from 'react';
 import {ViewContext} from '../context/ViewContext.tsx';
 import {useMediaDevices} from 'react-media-devices';
+import {DeviceContext} from '../context/DeviceContext.tsx';
 
 export function DevicesPage() {
     const {setView} = useContext(ViewContext);
+    const {setDeviceParams} = useContext(DeviceContext);
 
     const {devices} = useMediaDevices({
         constraints: {
@@ -23,10 +25,24 @@ export function DevicesPage() {
             <div style={{textAlign: 'left'}}>
                 <DisplayRow>
                     {videoDevices?.map((vd) => (
-                        <Button key={vd.deviceId} onClick={() => {}}>
+                        <Button
+                            key={vd.deviceId}
+                            onClick={() => {
+                                setDeviceParams({id: vd.deviceId, name: vd.label});
+                                setView('camera');
+                            }}
+                        >
                             {vd.label}
                         </Button>
                     ))}
+                    <Button
+                        onClick={() => {
+                            setDeviceParams({});
+                            setView('camera');
+                        }}
+                    >
+                        Clear
+                    </Button>
                 </DisplayRow>
             </div>
 

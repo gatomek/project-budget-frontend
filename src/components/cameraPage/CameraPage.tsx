@@ -8,13 +8,14 @@ import {Button} from '../button/Button.tsx';
 import {ControlPanel} from '../controlPanel/ControlPanel.tsx';
 import {ViewContext} from '../context/ViewContext.tsx';
 import styles from './CameraPage.module.css';
+import {DeviceContext} from '../context/DeviceContext.tsx';
 
 interface Resolution {
     width?: number;
     height?: number;
 }
 
-const videoConstraints = {
+const videoConstraints: MediaTrackConstraintSet = {
     facingMode: 'environment',
     width: {ideal: 3840, max: 4096},
     height: {ideal: 2160, max: 2160}
@@ -44,7 +45,9 @@ export function CameraPage() {
     const [uploadProgress, setUploadProgress] = useState(0);
     const [status, setStatus] = useState<UploadStatus>('idle');
     const [resolution, setResolution] = useState<Resolution>({});
+
     const {setView} = useContext(ViewContext);
+    const {params} = useContext(DeviceContext);
 
     const onUserMedia = (stream: MediaStream) => {
         const videoTrack = stream.getVideoTracks()[0];
@@ -113,7 +116,7 @@ export function CameraPage() {
                     audio={false}
                     screenshotFormat={jpegFormat.mime}
                     screenshotQuality={0.95}
-                    videoConstraints={videoConstraints}
+                    videoConstraints={params?.id ? {...videoConstraints, deviceId: params.id} : videoConstraints}
                     onUserMedia={onUserMedia}
                     forceScreenshotSourceSize={true}
                     style={{width: '100%', maxWidth: '600px', height: 'auto'}}
@@ -122,7 +125,7 @@ export function CameraPage() {
             <ControlPanel>
                 <DisplayRow>
                     <Display>
-                        {resolution.width && resolution.width ? `${resolution.width} x ${resolution.height}` : ''}
+                        {resolution.width && resolution.height ? `${resolution.width} x ${resolution.height}` : ''}
                         <br />
                         {blob?.size}
                     </Display>
@@ -139,7 +142,10 @@ export function CameraPage() {
                     </Display>
                 </DisplayRow>
                 <DisplayRow>
-                    <Button onClick={() => setView('devices')}>Devices</Button>
+                    <Button onClick={() => setView('devices')}>
+                        Devices
+                        <div>{params?.name ? params.name : 'AUTO'}</div>
+                    </Button>
                     <Button onClick={capture}>
                         Capture
                         <br />

@@ -35,6 +35,9 @@ export function DevicesPage() {
                             {vd.label}
                         </Button>
                     ))}
+                </DisplayRow>
+                <hr />
+                <DisplayRow>
                     <Button
                         onClick={() => {
                             setDeviceParams({});

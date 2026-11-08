@@ -9,7 +9,6 @@ import {ControlPanel} from '../controlPanel/ControlPanel.tsx';
 import {ViewContext} from '../context/ViewContext.tsx';
 import styles from './CameraPage.module.css';
 
-
 interface Resolution {
     width?: number;
     height?: number;
@@ -40,7 +39,6 @@ if (!backendUrl) {
 type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
 
 export function CameraPage() {
-
     const webcamRef = useRef<Webcam>(null);
     const [blob, setBlob] = useState<Blob | null>(null);
     const [uploadProgress, setUploadProgress] = useState(0);
@@ -142,13 +140,11 @@ export function CameraPage() {
                 </DisplayRow>
                 <DisplayRow>
                     <Button onClick={() => setView('devices')}>Devices</Button>
-                    &nbsp;
                     <Button onClick={capture}>
                         Capture
                         <br />
                         {jpegFormat.ext.toUpperCase()}
                     </Button>
-                    &nbsp;
                     <Button onClick={upload} disabled={!blob || status === 'uploading'}>
                         Upload
                     </Button>

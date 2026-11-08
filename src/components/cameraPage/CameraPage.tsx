@@ -3,7 +3,7 @@ import {useCallback, useContext, useRef, useState} from 'react';
 import axios from 'axios';
 import {v4 as uuidv4} from 'uuid';
 import {Display} from '../display/Display.tsx';
-import {DisplayRow} from '../controlItemRow/DisplayRow.tsx';
+import {DisplayRow} from '../displayRow/DisplayRow.tsx';
 import {Button} from '../button/Button.tsx';
 import {ControlPanel} from '../controlPanel/ControlPanel.tsx';
 import {ViewContext} from '../context/ViewContext.tsx';
@@ -116,7 +116,15 @@ export function CameraPage() {
                     audio={false}
                     screenshotFormat={jpegFormat.mime}
                     screenshotQuality={0.95}
-                    videoConstraints={params?.id ? {...videoConstraints, deviceId: params.id} : videoConstraints}
+                    videoConstraints={
+                        params?.id
+                            ? {
+                                  width: videoConstraints.width,
+                                  height: videoConstraints.height,
+                                  deviceId: params.id
+                              }
+                            : videoConstraints
+                    }
                     onUserMedia={onUserMedia}
                     forceScreenshotSourceSize={true}
                     style={{width: '100%', maxWidth: '600px', height: 'auto'}}

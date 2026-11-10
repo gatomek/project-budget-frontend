@@ -1,13 +1,10 @@
 .root {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     place-content: center;
     place-items: center;
     flex-grow: 1;
+    height: 100vh;
 
-    height: 100%;
     width: auto;
-    @media (max-width: 1024px) {
-        gap: 10px;
-    }
 }

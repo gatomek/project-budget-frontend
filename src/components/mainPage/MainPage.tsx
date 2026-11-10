@@ -2,12 +2,10 @@ import Webcam from 'react-webcam';
 import {useCallback, useContext, useRef, useState} from 'react';
 import axios from 'axios';
 import {v4 as uuidv4} from 'uuid';
-import {Display} from '../display/Display.tsx';
 import {DisplayRow} from '../displayRow/DisplayRow.tsx';
 import {Button} from '../button/Button.tsx';
 import {ControlPanel} from '../controlPanel/ControlPanel.tsx';
-import {ViewContext} from '../context/ViewContext.tsx';
-import styles from './CameraPage.module.css';
+import styles from './MainPage.module.css';
 import {DeviceContext} from '../context/DeviceContext.tsx';
 
 interface Resolution {
@@ -39,14 +37,13 @@ if (!backendUrl) {
 
 type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
 
-export function CameraPage() {
+export function MainPage() {
     const webcamRef = useRef<Webcam>(null);
     const [blob, setBlob] = useState<Blob | null>(null);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [status, setStatus] = useState<UploadStatus>('idle');
     const [resolution, setResolution] = useState<Resolution>({});
 
-    const {setView} = useContext(ViewContext);
     const {params} = useContext(DeviceContext);
 
     const onUserMedia = (stream: MediaStream) => {
@@ -104,13 +101,7 @@ export function CameraPage() {
 
     return (
         <section className={styles.root}>
-            <div
-                style={{
-                    position: 'relative',
-                    maxWidth: '600px',
-                    margin: '0 auto'
-                }}
-            >
+            <div>
                 <Webcam
                     ref={webcamRef}
                     audio={false}
@@ -132,34 +123,23 @@ export function CameraPage() {
             </div>
             <ControlPanel>
                 <DisplayRow>
-                    <Display>
+                    <Button onClick={capture}>
                         {resolution.width && resolution.height ? `${resolution.width} x ${resolution.height}` : ''}
                         <br />
-                        {blob?.size}
-                    </Display>
-                    &nbsp;
-                    <Display>
+                        {jpegFormat.ext.toUpperCase()}
+                        <br />
+                        Capture
+                    </Button>
+                    <Button onClick={upload} disabled={!blob || status === 'uploading'}>
                         {
                             {
                                 success: 'Success',
                                 error: 'Error',
                                 uploading: `${uploadProgress}%`,
-                                idle: ''
+                                idle: '---'
                             }[status]
                         }
-                    </Display>
-                </DisplayRow>
-                <DisplayRow>
-                    <Button onClick={() => setView('devices')}>
-                        Devices
-                        <div>{params?.name ? params.name : 'AUTO'}</div>
-                    </Button>
-                    <Button onClick={capture}>
-                        Capture
                         <br />
-                        {jpegFormat.ext.toUpperCase()}
-                    </Button>
-                    <Button onClick={upload} disabled={!blob || status === 'uploading'}>
                         Upload
                     </Button>
                 </DisplayRow>

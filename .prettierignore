@@ -2,7 +2,7 @@
 dist/
 node_modules/
 ansible/
-src/routes/
+src/routeTree.gen.ts
 
 package-lock.json
 tsconfig.*

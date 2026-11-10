@@ -9,7 +9,7 @@ import {useNavigate} from '@tanstack/react-router';
 
 export function SettingsPage() {
     const {setDeviceParams} = useContext(DeviceContext);
-    const navigate = useNavigate()
+    const navigate = useNavigate();
 
     const {devices} = useMediaDevices({
         constraints: {

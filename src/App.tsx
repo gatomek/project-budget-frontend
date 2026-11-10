@@ -19,7 +19,7 @@ function App() {
 
     return (
         <DeviceContext value={{params: deviceParams, setDeviceParams: setDeviceParams}}>
-            <RouterProvider router={router}/>
+            <RouterProvider router={router} />
         </DeviceContext>
     );
 }

@@ -139,7 +139,7 @@ export function MainPage() {
                                 idle: '---'
                             }[status]
                         }
-                        <br/>
+                        <br />
                         Upload
                     </Button>
                 </DisplayRow>

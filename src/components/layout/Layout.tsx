@@ -9,7 +9,9 @@ export function Layout() {
             <header className={styles.root}>
                 <Button onClick={() => navigate({to: '/'})}>Home</Button>
                 <Button onClick={() => navigate({to: '/settings'})}>Settings</Button>
-                <Button onClick={() => {}} disabled={true}>About</Button>
+                <Button onClick={() => {}} disabled={true}>
+                    About
+                </Button>
             </header>
 
             <main className="mx-auto max-w-7xl p-4 py-8">

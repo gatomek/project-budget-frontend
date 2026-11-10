@@ -39,17 +39,3 @@ body {
         'Helvetica Neue',
         sans-serif;
 }
-
-#center {
-    display: flex;
-    flex-direction: column;
-    place-content: center;
-    place-items: center;
-    flex-grow: 1;
-
-    height: 100%;
-    width: auto;
-    @media (max-width: 1024px) {
-        gap: 10px;
-    }
-}

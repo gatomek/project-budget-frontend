@@ -1,15 +1,15 @@
-import styles from './DevicePage.module.css';
+import styles from './SettingsPage.module.css';
 import {ControlPanel} from '../controlPanel/ControlPanel.tsx';
 import {DisplayRow} from '../displayRow/DisplayRow.tsx';
 import {Button} from '../button/Button.tsx';
 import {useContext} from 'react';
-import {ViewContext} from '../context/ViewContext.tsx';
 import {useMediaDevices} from 'react-media-devices';
 import {DeviceContext} from '../context/DeviceContext.tsx';
+import {useNavigate} from '@tanstack/react-router';
 
-export function DevicesPage() {
-    const {setView} = useContext(ViewContext);
+export function SettingsPage() {
     const {setDeviceParams} = useContext(DeviceContext);
+    const navigate = useNavigate()
 
     const {devices} = useMediaDevices({
         constraints: {
@@ -29,29 +29,24 @@ export function DevicesPage() {
                             key={vd.deviceId}
                             onClick={() => {
                                 setDeviceParams({id: vd.deviceId, name: vd.label});
-                                setView('camera');
                             }}
                         >
                             {vd.label}
                         </Button>
                     ))}
-                </DisplayRow>
-                <hr />
-                <DisplayRow>
                     <Button
                         onClick={() => {
                             setDeviceParams({});
-                            setView('camera');
                         }}
                     >
-                        Clear
+                        Auto
                     </Button>
                 </DisplayRow>
             </div>
 
             <ControlPanel>
                 <DisplayRow>
-                    <Button onClick={() => setView('camera')}>Camera</Button>
+                    <Button onClick={() => navigate({to: '/'})}>Save</Button>
                 </DisplayRow>
             </ControlPanel>
         </section>

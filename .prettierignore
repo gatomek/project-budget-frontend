@@ -2,6 +2,7 @@
 dist/
 node_modules/
 ansible/
+src/routes/
 
 package-lock.json
 tsconfig.*

@@ -1,25 +1,26 @@
 import './App.css';
-import {CameraPage} from './components/cameraPage/CameraPage.tsx';
 import {useState} from 'react';
-import {type View, ViewContext} from './components/context/ViewContext.tsx';
-import {DevicesPage} from './components/devicesPage/DevicesPage.tsx';
 import {DeviceContext, type DeviceParam} from './components/context/DeviceContext.tsx';
 
+import {createRouter, RouterProvider} from '@tanstack/react-router';
+
+import {routeTree} from './routeTree.gen';
+
+const router = createRouter({routeTree});
+
+declare module '@tanstack/react-router' {
+    interface Register {
+        router: typeof router;
+    }
+}
+
 function App() {
-    const [view, setView] = useState<View>('camera');
     const [deviceParams, setDeviceParams] = useState<DeviceParam>();
 
     return (
-        <ViewContext value={{view, setView}}>
-            <DeviceContext value={{params: deviceParams, setDeviceParams: setDeviceParams}}>
-                {
-                    {
-                        camera: <CameraPage />,
-                        devices: <DevicesPage />
-                    }[view]
-                }
-            </DeviceContext>
-        </ViewContext>
+        <DeviceContext value={{params: deviceParams, setDeviceParams: setDeviceParams}}>
+            <RouterProvider router={router}/>
+        </DeviceContext>
     );
 }
 
